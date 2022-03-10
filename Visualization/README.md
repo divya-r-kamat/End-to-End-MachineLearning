@@ -1,5 +1,20 @@
 ## Design principles for Data Visualization
 
+When we design graphs (and anything in general), we need design principles to guide us. Design principles help us in two ways:
+
+- They generate design options.
+- They help us choose among those options.
+
+One design principle is familiarity. For example, if we need to visually present a frequency distribution, familiarity gives us a few options: a histogram and a box plot (let's assume our audience is only familiar with these two). Our audience, however, is more familiar with histograms, so we choose a histogram for our presentation.
+
+The next design principle has to do with maximizing data elements on a graph. Generally, a graph has three elements:
+
+- Data elements: the numbers and the categories visually represented and the relationships between them.
+- Structural elements: the axes, the ticks, the legend, the grid, etc.
+- Decorations: extra colors, shapes, artistic drawings etc.
+
+Maximizing the data elements ensures the audience's attention is on the data — not on structure or decorations. 
+
 Matplotlib has two interfaces:
 
 - A functional interface: we use functions to create and modify plots.
@@ -30,6 +45,13 @@ The matplotlib.figure.Figure object acts as a canvas on which we can add one or 
 
 - The Figure (the canvas)
 - The Axes (the plot; don't confuse with "axis," which is the x- and y-axis of a plot).
+
+
+To change the proportions, we can use the figsize parameter inside the plt.subplots(figsize=(width, height)) function:
+
+        fig, ax = plt.subplots(figsize=(3, 5))
+        
+
 
 To create a bar plot, we use the Axes.bar() method and call plt.show() to display:
 
