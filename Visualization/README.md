@@ -15,6 +15,8 @@ The next design principle has to do with maximizing data elements on a graph. Ge
 
 Maximizing the data elements ensures the audience's attention is on the data — not on structure or decorations. 
 
+Another aspect that we need to consider is the audience's direction of reading. As they scroll down through our article, they will read (and look at) our graph from top to bottom. More specifically, people usually start from top left and follow a zigzag pattern until they reach bottom right.
+
 ## Visualization using Matplotlib
 
 Matplotlib has two interfaces:
@@ -107,3 +109,17 @@ To remove some of the x-tick labels, we use the Axes.set_xticks method. Below, w
                 top20_deathtoll['Total_Deaths'])
         ax.set_xticks([0, 100000, 200000, 300000])
         plt.show()
+
+To color the x-tick labels, we use the same Axes.tick_params() method. However, we need to call it one more time because we only want to modify the ticks of the x-axis.
+
+        ax.xaxis.tick_top()
+        ax.tick_params(top=False, left=False)
+        ax.tick_params(axis='x', colors='grey')
+
+To change the colors of the bar, we use the color parameter in the Axes.barh(color) method. This parameter accepts HEX color codes, and we use #af0b1e to get a shade of red. 
+
+        ax.barh(total_deaths_20['Country_Other'],
+                total_deaths_20['Total_Deaths'],
+                height=0.45, color='#af0b1e')
+                
+        
