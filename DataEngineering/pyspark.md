@@ -53,3 +53,23 @@ One of the advantages of the DataFrame interface is we can run SQL queries on th
 
     # Show the results
     table_df.show()
+    
+    
+### Pandafy a Spark DataFrame
+
+Spark DataFrames make that easy with the .toPandas() method. Calling this method on a Spark DataFrame returns the corresponding pandas DataFrame.
+
+      pd_counts = spark_df.toPandas()
+
+The .createDataFrame() method takes a pandas DataFrame and returns a Spark DataFrame. The output of this method is stored locally, not in the SparkSession catalog. This means that we can use all the Spark DataFrame methods on it, but can't access the data in other contexts. For example, a SQL query (using the .sql() method) that references the DataFrame will throw an error. To access the data in this way, we have to save it as a temporary table. We can do this using the .createTempView() Spark DataFrame method, which takes as its only argument the name of the temporary table we'd like to register. This method registers the DataFrame as a table in the catalog, but as this table is temporary, it can only be accessed from the specific SparkSession used to create the Spark DataFrame. There is also the method .createOrReplaceTempView(). This safely creates a new temporary table if nothing was there before, or updates an existing table if one was already defined. 
+
+      # Create spark_temp from pd_temp
+      spark_temp = spark.createDataFrame(pd_temp)
+      
+      # # Add spark_temp to the catalog
+      spark_temp.createOrReplaceTempView("temp")
+
+
+
+
+
