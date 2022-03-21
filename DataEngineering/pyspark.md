@@ -73,3 +73,31 @@ The .createDataFrame() method takes a pandas DataFrame and returns a Spark DataF
 
 SparkSession has a .read attribute which has several methods for reading different data sources into Spark DataFrames. Using these we can create a DataFrame from a .csv file just like with regular pandas DataFrames
 
+## Common Data operations in Spark
+
+### column-wise operations
+
+In Spark we can do this using the .withColumn() method, which takes two arguments. First, a string with the name of new column, and second the new column itself.
+
+The new column must be an object of class Column. Creating one of these is as easy as extracting a column from DataFrame using df.colName.
+
+Updating a Spark DataFrame is somewhat different than working in pandas because the Spark DataFrame is immutable. This means that it can't be changed, and so columns can't be updated in place.
+
+Thus, all these methods return a new DataFrame. To overwrite the original DataFrame you must reassign the returned DataFrame using the method like so:
+
+      df = df.withColumn("newCol", df.oldCol + 1)
+      
+The above code creates a DataFrame with the same columns as df plus a new column, newCol, where every entry is equal to the corresponding entry from oldCol, plus one. To overwrite an existing column, just pass the name of the column as the first argument!
+
+### Filtering Data
+
+The .filter() method takes either an expression that would follow the WHERE clause of a SQL expression as a string, or a Spark Column of boolean (True/False) values.
+
+      flights.filter("air_time > 120").show()
+      flights.filter(flights.air_time > 120).show()
+      
+### Selecting
+
+The Spark variant of SQL's SELECT is the .select() method. This method takes multiple arguments - one for each column we want to select. These arguments can either be the column name as a string (one for each column) or a column object (using the df.colName syntax). When we pass a column object, we can perform operations like addition or subtraction on the column to change the data contained in it, much like inside .withColumn().
+
+The difference between .select() and .withColumn() methods is that .select() returns only the columns we specify, while .withColumn() returns all the columns of the DataFrame in addition to the one defined. It's often a good idea to drop columns we don't need at the beginning of an operation so that we're not dragging around extra data as we're wrangling. In this case, we would use .select() and not .withColumn().
