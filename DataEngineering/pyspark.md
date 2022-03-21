@@ -71,5 +71,5 @@ The .createDataFrame() method takes a pandas DataFrame and returns a Spark DataF
 
 
 
-
+SparkSession has a .read attribute which has several methods for reading different data sources into Spark DataFrames. Using these we can create a DataFrame from a .csv file just like with regular pandas DataFrames
 
