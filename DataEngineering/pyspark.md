@@ -110,3 +110,24 @@ At the core of the pyspark.ml module are the Transformer and Estimator classes. 
 Transformer classes have a .transform() method that takes a DataFrame and returns a new DataFrame; usually the original one with a new column appended. For example, you might use the class Bucketizer to create discrete bins from a continuous feature or the class PCA to reduce the dimensionality of your dataset using principal component analysis.
 
 Estimator classes all implement a .fit() method. These methods also take a DataFrame, but instead of returning another DataFrame they return a model object. This can be something like a StringIndexerModel for including categorical data saved as strings in your models, or a RandomForestModel that uses the random forest algorithm for classification or regression.
+
+### Data types
+
+Spark only handles numeric data. That means all of the columns in your DataFrame must be either integers or decimals (called 'doubles' in Spark).
+
+When we imported our data, we let Spark guess what kind of information each column held. Unfortunately, Spark doesn't always guess right. To remedy this, we can use the .cast() method in combination with the .withColumn() method. It's important to note that .cast() works on columns, while .withColumn() works on DataFrames.
+
+The only argument we need to pass to .cast() is the kind of value we want to create, in string form. For example, to create integers, we'll pass the argument "integer" and for decimal numbers we'll use "double".
+
+      # Cast the columns to integers
+      model_data = model_data.withColumn("arr_delay", model_data.arr_delay.cast("integer"))
+      
+      
+### One Hot vectors
+
+A one-hot vector is a way of representing a categorical feature where every observation has a vector in which all elements are zero except for at most one element, which has a value of one (1). Each element in the vector corresponds to a level of the feature, so it's possible to tell what the right level is by seeing which element of the vector is equal to one (1).
+PySpark has functions for handling this built into the pyspark.ml.features submodule.
+
+The first step to encoding categorical feature is to create a StringIndexer. Members of this class are Estimators that take a DataFrame with a column of strings and map each unique string to a number. Then, the Estimator returns a Transformer that takes a DataFrame, attaches the mapping to it as metadata, and returns a new DataFrame with a numeric column corresponding to the string column.
+
+The second step is to encode this numeric column as a one-hot vector using a OneHotEncoder. This works exactly the same way as the StringIndexer by creating an Estimator and then a Transformer. The end result is a column that encodes categorical feature as a vector that's suitable for machine learning routines!
