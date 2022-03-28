@@ -131,3 +131,72 @@ PySpark has functions for handling this built into the pyspark.ml.features submo
 The first step to encoding categorical feature is to create a StringIndexer. Members of this class are Estimators that take a DataFrame with a column of strings and map each unique string to a number. Then, the Estimator returns a Transformer that takes a DataFrame, attaches the mapping to it as metadata, and returns a new DataFrame with a numeric column corresponding to the string column.
 
 The second step is to encode this numeric column as a one-hot vector using a OneHotEncoder. This works exactly the same way as the StringIndexer by creating an Estimator and then a Transformer. The end result is a column that encodes categorical feature as a vector that's suitable for machine learning routines!
+
+      # Create a StringIndexer
+      carr_indexer = StringIndexer(inputCol="carrier",outputCol="carrier_index")
+
+      # Create a OneHotEncoder
+      carr_encoder = OneHotEncoder(inputCol="carrier_index", outputCol="carrier_fact")
+      
+### Assemble a vector
+The last step in the Pipeline is to combine all of the columns containing our features into a single column. This has to be done before modeling can take place because every Spark modeling routine expects the data to be in this form. We can do this by storing each of the values from a column as an entry in a vector. Then, from the model's point of view, every observation is a vector that contains all of the information about it and a label that tells the modeler what value that observation corresponds to.
+
+Because of this, the pyspark.ml.feature submodule contains a class called VectorAssembler. This Transformer takes all of the columns we specify and combines them into a new vector column.
+
+      # Make a VectorAssembler
+      vec_assembler = VectorAssembler(inputCols=["month", "air_time", "carrier_fact", "dest_fact", "plane_age"], outputCol="features")
+
+
+### Create the pipeline
+
+Pipeline is a class in the pyspark.ml module that combines all the Estimators and Transformers that we've already created. This lets us reuse the same modeling process over and over again by wrapping it up in one simple object.
+
+      # Import Pipeline
+      from pyspark.ml import Pipeline
+
+      # Make the pipeline - stages should be a list holding all the stages we want our data to go through in the pipeline. 
+      flights_pipe = Pipeline(stages=[carr_indexer, carr_encoder, vec_assembler])
+      
+### Test vs Train
+
+One of the most important steps is to split the data into a test set and a train set. In Spark it's important to make sure you split the data after all the transformations. This is because operations like StringIndexer don't always produce the same index even when given the same list of strings.
+
+      # Fit and transform the data
+      piped_data = flights_pipe.fit(model_data).transform(model_data)
+      
+Use the DataFrame method .randomSplit() to split piped_data into two pieces, training with 60% of the data, and test with 40% of the data by passing the list [.6, .4] to the .randomSplit() method.
+
+      # Split the data into training and test sets
+      training, test = piped_data.randomSplit([.6,.4])
+      
+      
+ ### Create the modeler
+The Estimator we'll be using is a LogisticRegression from the pyspark.ml.classification submodule.
+
+
+      # Import LogisticRegression
+      from pyspark.ml.classification import LogisticRegression
+
+      # Create a LogisticRegression Estimator
+      lr = LogisticRegression()
+      
+### Cross validation
+
+We tune logistic regression model using a procedure called k-fold cross validation. This is a method of estimating the model's performance on unseen data (like test DataFrame). It works by splitting the training data into a few different partitions. Once the data is split up, one of the partitions is set aside, and the model is fit to the others. Then the error is measured against the held out partition. This is repeated for each of the partitions, so that every block of data is held out and used as a test set exactly once. Then the error on each of the partitions is averaged. This is called the cross validation error of the model, and is a good estimate of the actual error on the held out data.
+
+
+### Create the evaluator
+The first thing we need when doing cross validation for model selection is a way to compare different models. The pyspark.ml.evaluation submodule has classes for evaluating different kinds of models. Since we are using Logistic regression which is a binary classification model, so we'll be using the BinaryClassificationEvaluator from the pyspark.ml.evaluation module.
+
+This evaluator calculates the area under the ROC. This is a metric that combines the two kinds of errors a binary classifier can make (false positives and false negatives) into a simple number.
+
+      # Import the evaluation submodule
+      import pyspark.ml.evaluation as evals
+
+      # Create a BinaryClassificationEvaluator
+      evaluator = evals.BinaryClassificationEvaluator(metricName="areaUnderROC")
+      
+## Make a grid
+
+Next, we need to create a grid of values to search over when looking for the optimal hyperparameters. The submodule pyspark.ml.tuning includes a class called ParamGridBuilder.
+We need to use the .addGrid() and .build() methods to create a grid that we can use for cross validation. The .addGrid() method takes a model parameter (an attribute of the model Estimator, lr) and a list of values to try out. The .build() method takes no arguments.
