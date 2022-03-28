@@ -101,3 +101,12 @@ The .filter() method takes either an expression that would follow the WHERE clau
 The Spark variant of SQL's SELECT is the .select() method. This method takes multiple arguments - one for each column we want to select. These arguments can either be the column name as a string (one for each column) or a column object (using the df.colName syntax). When we pass a column object, we can perform operations like addition or subtraction on the column to change the data contained in it, much like inside .withColumn().
 
 The difference between .select() and .withColumn() methods is that .select() returns only the columns we specify, while .withColumn() returns all the columns of the DataFrame in addition to the one defined. It's often a good idea to drop columns we don't need at the beginning of an operation so that we're not dragging around extra data as we're wrangling. In this case, we would use .select() and not .withColumn().
+
+
+## Machine Learning Pipelines
+
+At the core of the pyspark.ml module are the Transformer and Estimator classes. Almost every other class in the module behaves similarly to these two basic classes.
+
+Transformer classes have a .transform() method that takes a DataFrame and returns a new DataFrame; usually the original one with a new column appended. For example, you might use the class Bucketizer to create discrete bins from a continuous feature or the class PCA to reduce the dimensionality of your dataset using principal component analysis.
+
+Estimator classes all implement a .fit() method. These methods also take a DataFrame, but instead of returning another DataFrame they return a model object. This can be something like a StringIndexerModel for including categorical data saved as strings in your models, or a RandomForestModel that uses the random forest algorithm for classification or regression.
